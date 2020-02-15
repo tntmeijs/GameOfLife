@@ -146,7 +146,7 @@ class Simulation {
                     coordinate.x = column * this.cellSize.x;
                     coordinate.y = row * this.cellSize.y;
 
-                    DrawRectangle(coordinate, this.cellSize, this.context);
+                    DrawRectangle(coordinate, this.cellSize, "#ffffff", this.context);
                 }
             }
         }

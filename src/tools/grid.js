@@ -53,7 +53,7 @@ class Grid {
             let start = new Vector2D(0, y);
             let end = new Vector2D(this.gridSize.x, y);
 
-            DrawLine(start, end, this.context);
+            DrawLine(start, end, "#ffffff", this.context);
         }
 
         // Draw vertical lines
@@ -61,7 +61,7 @@ class Grid {
             let start = new Vector2D(x, 0);
             let end = new Vector2D(x, this.gridSize.y);
 
-            DrawLine(start, end, this.context);
+            DrawLine(start, end, "#ffffff", this.context);
         }
     }
 };
