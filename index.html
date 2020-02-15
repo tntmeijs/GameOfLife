@@ -6,11 +6,25 @@
     </head>
 
     <body>
-        <canvas id="canvas" width="512" height="512"></canvas>
-        <button id="play-pause">simulate</button>
-        <button id="reset">reset</button>
-        <button id="save">save</button>
-        <button id="load">load</button>
+        <div>
+            <div class="toolbar">
+                <button id="play-pause" class="toolbar-button">simulate</button>
+                <button id="reset" class="toolbar-button">reset</button>
+                <button id="save" class="toolbar-button">save</button>
+                <button id="load" class="toolbar-button">load</button>
+            </div>
+
+            <canvas id="canvas" width="512" height="512"></canvas>
+            
+            <div id="color-toolbar" class="toolbar">
+                <button class="toolbar-button white"></button>
+                <button class="toolbar-button green"></button>
+                <button class="toolbar-button blue"></button>
+                <button class="toolbar-button purple"></button>
+                <button class="toolbar-button red"></button>
+                <button class="toolbar-button yellow"></button>
+            </div>
+        </div>
 
         <!-- Mathematics -->
         <script src="src/math/vector.js"></script>
