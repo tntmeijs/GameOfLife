@@ -13,6 +13,7 @@ class Grid {
         this.cellSize = cellSize;
         this.context = context;
         this.mousePosition = new Vector2D();
+        this.selectedColor = null;
 
         // Callback that lets the simulation know which cell was clicked
         this.onCellClicked = null;
@@ -38,9 +39,24 @@ class Grid {
             let column = (Math.floor(event.offsetX / this.cellSize.x));
             let row = (Math.floor(event.offsetY / this.cellSize.y));
 
-            if (this.onCellClicked !== null) {
-                this.onCellClicked(row, column);
+            if (this.selectedColor === null) {
+                alert("Please select a color.");
+                return;
             }
+
+            if (this.onCellClicked !== null) {
+                this.onCellClicked(row, column, this.selectedColor);
+            }
+        });
+
+        // Register the color toolbar
+        let buttons = document.getElementById("color-toolbar");
+        buttons.childNodes.forEach(child => {
+            child.addEventListener('click', event => {
+                // Update the currently selected color
+                this.selectedColor = document.defaultView.getComputedStyle(event.target, null)["backgroundColor"];
+                document.getElementById("selected-color").style.backgroundColor = this.selectedColor;
+            });
         });
     }
 
