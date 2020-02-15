@@ -8,6 +8,12 @@ const cellSize = new Vector2D(8, 8);
 
 const grid = new Grid(gridSize, cellSize, canvas, context);
 
+const data = new SimulationData(5);
+
+const simulation = new Simulation(grid, data, context);
+
+let totalTime = 0;
+
 // ----------------------------------------------------------------------------
 // Game loop logic
 // ----------------------------------------------------------------------------
@@ -23,6 +29,13 @@ function Initialize() {
  * @param {Number} deltaTime Time since the last game update
  */
 function Update(deltaTime) {
+    // Advance the simulation every 1/10th of a second
+    if (totalTime >= 100) {
+        simulation.Step();
+        totalTime = 0;
+    }
+
+    totalTime += deltaTime;
 }
 
 /**
@@ -33,8 +46,10 @@ function Draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw a grid and highlight the selected cell
-    grid.Draw();
-    grid.HighlightCursor();
+    //grid.Draw();
+    //grid.HighlightCursor();
+
+    simulation.Draw();
 }
 
 // ----------------------------------------------------------------------------
