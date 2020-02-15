@@ -1,16 +1,12 @@
 "use strict";
 
 class Simulation {
-    constructor(grid, simulationData, context) {
-        this.simulationData = simulationData;
+    constructor(grid, context) {
         this.context = context;
+        this.savedSimulationGrid = null;
 
         if (grid === undefined) {
             console.error("[ERROR] Simulation grid not set.");
-        }
-
-        if (this.simulationData === undefined) {
-            console.error("[ERROR]: Simulation data not set.");
         }
 
         if (this.context === undefined) {
@@ -23,37 +19,65 @@ class Simulation {
             alive: 1
         };
 
-        // Create a 2D array that will hold the simulation
-        this.simulationGrid = [];
-
         // Grid information
         this.rowCount    = Math.floor(grid.gridSize.y / grid.cellSize.y);
         this.columnCount = Math.floor(grid.gridSize.x / grid.cellSize.x);
         this.cellSize    = grid.cellSize;
+
+        // Create a 2D array that will hold the simulation
+        this.simulationGrid = this.CreateClearSimulationGrid();
+
+        // Allow the user to toggle cells between dead and alive
+        grid.onCellClicked = (row, column) => {
+            let cell = this.simulationGrid[row][column];
+            
+            if (cell === this.cellState.dead) {
+                cell = this.cellState.alive;
+            } else if (cell === this.cellState.alive) {
+                cell = this.cellState.dead;
+            }
+
+            this.simulationGrid[row][column] = cell;
+        };
+    }
+
+    /**
+     * Save the simulation grid
+     * This allows users to reset their grid to the inital state
+     */
+    SaveSimulation() {
+        this.savedSimulationGrid = this.simulationGrid;
+    }
+
+    /**
+     * Revert the simulation grid to the saved grid
+     */
+    LoadSimulation() {
+        if (this.savedSimulationGrid !== null) {
+            this.simulationGrid = this.savedSimulationGrid;
+        }
+    }
+
+    /**
+     * Set all cells to the dead state
+     * @returns Two-dimensional array that represents a new simulation grid
+     */
+    CreateClearSimulationGrid() {
+        let grid = [];
 
         for (let row = 0; row < this.rowCount; ++row) {
             let rowArray = [];
 
             for (let column = 0; column < this.columnCount; ++column) {
                 // Cells are dead by default
-                let state = this.cellState.dead;
-
-                // Use the initial spawn chance to spawn live cells
-                // A number between 0 and 100 is generated, this maps to the
-                // spawn percentage value
-                let randomNumber = Math.floor(Math.random() * Math.floor(101));
-
-                if (randomNumber < this.simulationData.initialSpawnChance) {
-                    state = this.cellState.alive;
-                }
-
-                // Save the cell
-                rowArray.push(state);
+                rowArray.push(this.cellState.dead);
             }
 
             // Save the row
-            this.simulationGrid.push(rowArray);
+            grid.push(rowArray);
         }
+
+        return grid;
     }
 
     /**
@@ -64,106 +88,49 @@ class Simulation {
         // iteration order will start somewhere. We need to simulate the
         // generation as if they all update at the same time. This is why
         // we need an "intact" copy of the original data to compare against.        
-        let previousGeneration = this.simulationGrid;
+        let previousGeneration = this.CreateClearSimulationGrid();
 
         for (let row = 0; row < this.rowCount; ++row) {
             for (let column = 0; column < this.columnCount; ++column) {
-                // All neighbouring cells
-                let topleftCellAlive        = null;
-                let topCenterCellAlive      = null;
-                let topRightCellAlive       = null;
-                let leftCenterCellAlive     = null;
-                let rightCenterCellAlive    = null;
-                let bottomleftCellAlive     = null;
-                let bottomCenterCellAlive   = null;
-                let bottomRightCellAlive    = null;
-
-                // Top center cell
-                if (row - 1 < 0) {
-                    // Outside of the grid
-                    topCenterCellAlive = this.cellState.dead;
-                } else {
-                    topCenterCellAlive = previousGeneration[row - 1][column];
-                }
-
-                // Bottom center cell
-                if (row + 1 >= this.rowCount) {
-                    // Outside of the grid
-                    bottomCenterCellAlive = this.cellState.dead;
-                } else {
-                    bottomCenterCellAlive = previousGeneration[row + 1][column];
-                }
-
-                // Left center cell
-                if (column - 1 < 0) {
-                    // Outside of the grid
-                    leftCenterCellAlive = this.cellState.dead;
-                } else {
-                    leftCenterCellAlive = previousGeneration[row][column - 1];
-                }
-
-                // Right center cell
-                if (column + 1 >= this.columnCount) {
-                    // Outside of the grid
-                    rightCenterCellAlive = this.cellState.dead;
-                } else {
-                    rightCenterCellAlive = previousGeneration[row][column + 1];
-                }
-
-                // // Top left cell
-                if (row - 1 < 0 || column - 1 < 0) {
-                    topleftCellAlive = this.cellState.dead;
-                } else {
-                    topleftCellAlive = previousGeneration[row - 1][column - 1];
-                }
-
-                // Top right cell
-                if (row - 1 < 0 || column + 1 >= this.columnCount) {
-                    topRightCellAlive = this.cellState.dead;
-                } else {
-                    topRightCellAlive = previousGeneration[row - 1][column + 1];
-                }
-
-                // Bottom left cell
-                if (row + 1 >= this.rowCount || column - 1 < 0) {
-                    bottomleftCellAlive = this.cellState.dead;
-                } else {
-                    bottomleftCellAlive = previousGeneration[row + 1][column - 1];
-                }
-
-                // Bottom right cell
-                if (row + 1 >= this.rowCount || column + 1 >= this.columnCount) {
-                    bottomRightCellAlive = this.cellState.dead;
-                } else {
-                    bottomRightCellAlive = previousGeneration[row + 1][column + 1];
-                }
-
-                // Determine how many neighbours are still alive
                 let aliveNeighbourCount = 0;
-                aliveNeighbourCount += (topleftCellAlive === this.cellState.dead)        ? 0 : 1;
-                aliveNeighbourCount += (topCenterCellAlive === this.cellState.dead)      ? 0 : 1;
-                aliveNeighbourCount += (topRightCellAlive === this.cellState.dead)       ? 0 : 1;
-                aliveNeighbourCount += (leftCenterCellAlive === this.cellState.dead)     ? 0 : 1;
-                aliveNeighbourCount += (rightCenterCellAlive === this.cellState.dead)    ? 0 : 1;
-                aliveNeighbourCount += (bottomleftCellAlive === this.cellState.dead)     ? 0 : 1;
-                aliveNeighbourCount += (bottomCenterCellAlive === this.cellState.dead)   ? 0 : 1;
-                aliveNeighbourCount += (bottomRightCellAlive === this.cellState.dead)    ? 0 : 1;
 
-                // Conway's Game of Life rules from:
-                // https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules
-                let currentCell = this.simulationGrid[row][column];
-                if ((aliveNeighbourCount === 2 || aliveNeighbourCount === 3) && currentCell === this.cellState.alive) {
-                    // Dies by overpopulation
-                    this.simulationGrid[row][column] = this.cellState.alive;
-                } else if (aliveNeighbourCount === 3 && currentCell === this.cellState.dead) {
-                    // Becomes alive again by reproduction
-                    this.simulationGrid[row][column] = this.cellState.alive;
-                } else {
-                    // Dead by other causes
-                    this.simulationGrid[row][column] = this.cellState.dead;
+                // Loop through all eight neighbours
+                for (let deltaY = -1; deltaY <= 1; ++deltaY) {
+                    for (let deltaX = -1; deltaX <= 1; ++deltaX) {
+                        // Ignore self
+                        if (!(deltaX === 0 && deltaY === 0)) {
+                            // Check whether the neighbouring cell is alive
+                            if ((this.simulationGrid[row + deltaY] !== undefined) &&
+                                (this.simulationGrid[row + deltaY][column + deltaX] !== undefined) &&
+                                (this.simulationGrid[row + deltaY][column + deltaX] === this.cellState.alive)) {
+                                    ++aliveNeighbourCount;
+                            }
+                        }
+                    }
                 }
+
+                // Conway's Game of Life rules
+                let thisCell = this.simulationGrid[row][column];
+                switch (aliveNeighbourCount) {
+                    case 0:
+                    case 1:
+                        thisCell = this.cellState.dead;
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        thisCell = this.cellState.alive;
+                        break;
+                    default:
+                        thisCell = this.cellState.dead;
+                        break;
+                }
+
+                previousGeneration[row][column] = thisCell;
             }
         }
+
+        this.simulationGrid = previousGeneration;
     }
 
     /**

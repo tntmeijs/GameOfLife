@@ -14,6 +14,9 @@ class Grid {
         this.context = context;
         this.mousePosition = new Vector2D();
 
+        // Callback that lets the simulation know which cell was clicked
+        this.onCellClicked = null;
+
         if (this.gridSize === undefined) {
             this.gridSize = new Vector2D();
         }
@@ -30,12 +33,14 @@ class Grid {
             console.error("[ERROR] Grid context not set.");
         }
 
-        // Register to the mouse move callback on the canvas element
-        // This is used to determine where in the grid the user is pointing
-        canvas.addEventListener('mousemove', event => {
-            // Snap the mouse position to the grid
-            this.mousePosition.x = event.offsetX - (event.offsetX % this.cellSize.x);
-            this.mousePosition.y = event.offsetY - (event.offsetY % this.cellSize.y);
+        // Determine which cell was clicked
+        canvas.addEventListener('click', event => {
+            let column = (Math.floor(event.offsetX / this.cellSize.x));
+            let row = (Math.floor(event.offsetY / this.cellSize.y));
+
+            if (this.onCellClicked !== null) {
+                this.onCellClicked(row, column);
+            }
         });
     }
 
@@ -58,12 +63,5 @@ class Grid {
 
             DrawLine(start, end, this.context);
         }
-    }
-
-    /**
-     * Draw the grid cell that lies beneath the mouse cursor
-     */
-    HighlightCursor() {
-        DrawRectangle(this.mousePosition, this.cellSize, this.context);
     }
 };

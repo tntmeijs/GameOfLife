@@ -1,41 +1,75 @@
 "use strict";
 
+// Update interval in milliseconds
+const stepTime = 100;
+
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
+
+const playPauseButton   = document.getElementById("play-pause");
+const resetButton       = document.getElementById("reset");
+const saveButton        = document.getElementById("save");
+const loadButton        = document.getElementById("load");
 
 const gridSize = new Vector2D(canvas.width, canvas.height);
 const cellSize = new Vector2D(8, 8);
 
 const grid = new Grid(gridSize, cellSize, canvas, context);
 
-const data = new SimulationData(5);
-
-const simulation = new Simulation(grid, data, context);
-
-let totalTime = 0;
+const simulation = new Simulation(grid, context);
 
 // ----------------------------------------------------------------------------
 // Game loop logic
 // ----------------------------------------------------------------------------
 
+let gamePaused = true;
+
 /**
  * Called once before the game starts to set the initial state
  */
 function Initialize() {
+    playPauseButton.addEventListener('click', event => {
+        event.preventDefault();
+
+        gamePaused = !gamePaused;
+    });
+
+    resetButton.addEventListener('click', event => {
+        event.preventDefault();
+
+        // Clear the simulation grid
+        simulation.simulationGrid = simulation.CreateClearSimulationGrid();
+
+        // Pause the simulation
+        gamePaused = true;
+    });
+
+    saveButton.addEventListener('click', event => {
+        event.preventDefault();
+
+        simulation.SaveSimulation();
+    });
+
+    loadButton.addEventListener('click', event => {
+        event.preventDefault();
+
+        simulation.LoadSimulation();
+    });
 }
 
 /**
- * Called once every frame to update the game logic
- * @param {Number} deltaTime Time since the last game update
+ * Called once every N milliseconds update the game logic
  */
-function Update(deltaTime) {
-    // Advance the simulation every 1/10th of a second
-    if (totalTime >= 100) {
-        simulation.Step();
-        totalTime = 0;
+function Update() {
+    if (gamePaused) {
+        playPauseButton.innerHTML = "simulate";
+        return;
     }
 
-    totalTime += deltaTime;
+    playPauseButton.innerHTML = "pause";
+
+    // Advance the simulation
+    simulation.Step();
 }
 
 /**
@@ -45,9 +79,10 @@ function Draw() {
     // Clear the screen
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw a grid and highlight the selected cell
-    //grid.Draw();
-    //grid.HighlightCursor();
+    if (gamePaused) {
+        // Draw a grid and highlight the selected cell
+        grid.Draw();
+    }
 
     simulation.Draw();
 }
@@ -56,18 +91,14 @@ function Draw() {
 // Game loop
 // ----------------------------------------------------------------------------
 
-let previousTimestamp = 0;
-
 Initialize();
 
-function Loop(timestamp) {
-    let deltaTime = timestamp - previousTimestamp;
-
-    Update(deltaTime);
+function Loop() {
+    Update();
     Draw();
 
-    previousTimestamp = timestamp;
-    window.requestAnimationFrame(Loop);
+    setTimeout(Loop, stepTime);
 }
 
-window.requestAnimationFrame(Loop);
+// Start the simulation
+Loop();
