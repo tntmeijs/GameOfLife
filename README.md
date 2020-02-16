@@ -6,6 +6,9 @@ I've recreated the system in JavaScript. Everything runs in the browser.
 
 The application features a simple editing tool to make it a bit easier to create new patterns.
 
+This project is no longer maintained. I only ever intended to spend a weekend on this.
+You can view the aplication online and give it a shot: https://tntmeijs.github.io/GameOfLife
+
 # Showcase
 
 **Gosper's glider gun**
